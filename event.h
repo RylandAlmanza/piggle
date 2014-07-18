@@ -4,7 +4,8 @@
 typedef enum EventTypeEnum EventType;
 
 enum EventTypeEnum {
-    KEYDOWN
+    KEYDOWN,
+    KEYUP
 };
 
 typedef enum EventValueEnum EventValue;

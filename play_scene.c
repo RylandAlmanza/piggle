@@ -1,7 +1,10 @@
+#include <stdbool.h>
 #include "play_scene.h"
 
 int play_scene_player_x;
 int play_scene_player_y;
+bool up_pressed;
+bool down_pressed;
 
 DrawActionList play_scene_update(EventList events) {
     DrawActionList actions = DrawActionList_new();
@@ -11,13 +14,28 @@ DrawActionList play_scene_update(EventList events) {
         if (event.type == KEYDOWN) {
             switch (event.value) {
                 case KEY_UP:
-                    play_scene_player_y--;
+                    up_pressed = true;
                     break;
                 case KEY_DOWN:
-                    play_scene_player_y++;
+                    down_pressed = true;
                     break;
             }
         }
+        if (event.type == KEYUP) {
+            switch (event.value) {
+                case KEY_UP:
+                    up_pressed = false;
+                case KEY_DOWN:
+                    down_pressed = false;
+            }
+        }
+    }
+
+    if (up_pressed) {
+        play_scene_player_y--;
+    }
+    if (down_pressed) {
+        play_scene_player_y++;
     }
 
     // Fill the surface black

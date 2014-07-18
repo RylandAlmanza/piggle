@@ -86,6 +86,14 @@ SDL_Surface *load_surface(char *path, SDL_Surface *screen_surface) {
 
 int g;
 
+int timer_start_ticks;
+void timer_start() {
+    timer_start_ticks = SDL_GetTicks();
+}
+int timer_get_ticks() {
+    return SDL_GetTicks() - timer_start_ticks;
+}
+
 int main(int argc, char* args[]) {
     // This will be the window we'll be rendering to
     SDL_Window *window = NULL;
@@ -125,6 +133,7 @@ int main(int argc, char* args[]) {
             piggle_scene_update = start_scene_update;
 
             while (!quit) {
+                timer_start();
                 EventList events = EventList_new();
                 while (SDL_PollEvent(&sdl_event) != 0) {
                     Event event;
@@ -134,6 +143,26 @@ int main(int argc, char* args[]) {
                     }
                     if (sdl_event.type == SDL_KEYDOWN) {
                         event.type = KEYDOWN;
+                        switch (sdl_event.key.keysym.sym) {
+                            case SDLK_UP:
+                                event.value = KEY_UP;
+                                break;
+                            case SDLK_RIGHT:
+                                event.value = KEY_RIGHT;
+                                break;
+                            case SDLK_DOWN:
+                                event.value = KEY_DOWN;
+                                break;
+                            case SDLK_LEFT:
+                                event.value = KEY_LEFT;
+                                break;
+                            default:
+                                event.value = KEY_UP;
+                                break;
+                        }
+                    }
+                    if (sdl_event.type == SDL_KEYUP) {
+                        event.type = KEYUP;
                         switch (sdl_event.key.keysym.sym) {
                             case SDLK_UP:
                                 event.value = KEY_UP;
@@ -173,6 +202,9 @@ int main(int argc, char* args[]) {
                 SDL_UpdateWindowSurface(window);
                 if (piggle_scene_over) {
                     piggle_scene_update = piggle_scene_next;
+                }
+                if (timer_get_ticks() < 1000 / 60) {
+                    SDL_Delay((1000 / 60) - timer_get_ticks());
                 }
             }
         }
