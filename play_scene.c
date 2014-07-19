@@ -5,6 +5,8 @@ int play_scene_player_x;
 int play_scene_player_y;
 bool up_pressed;
 bool down_pressed;
+bool right_pressed;
+bool left_pressed;
 
 DrawActionList play_scene_update(EventList events) {
     DrawActionList actions = DrawActionList_new();
@@ -13,20 +15,34 @@ DrawActionList play_scene_update(EventList events) {
         Event event = events.events[i];
         if (event.type == KEYDOWN) {
             switch (event.value) {
-                case KEY_UP:
+                case UP:
                     up_pressed = true;
                     break;
-                case KEY_DOWN:
+                case DOWN:
                     down_pressed = true;
+                    break;
+                case RIGHT:
+                    right_pressed = true;
+                    break;
+                case LEFT:
+                    left_pressed = true;
                     break;
             }
         }
         if (event.type == KEYUP) {
             switch (event.value) {
-                case KEY_UP:
+                case UP:
                     up_pressed = false;
-                case KEY_DOWN:
+                    break;
+                case DOWN:
                     down_pressed = false;
+                    break;
+                case LEFT:
+                    left_pressed = false;
+                    break;
+                case RIGHT:
+                    right_pressed = false;
+                    break;
             }
         }
     }
@@ -37,8 +53,15 @@ DrawActionList play_scene_update(EventList events) {
     if (down_pressed) {
         play_scene_player_y++;
     }
+    if (right_pressed) {
+        play_scene_player_x++;
+    }
+    if (left_pressed) {
+        play_scene_player_x--;
+    }
 
     // Fill the surface black
-    actions.add_action(&actions, 10, play_scene_player_y, "player");
+    actions.add_action(&actions, play_scene_player_x, play_scene_player_y,
+                       "player");
     return actions;
 }

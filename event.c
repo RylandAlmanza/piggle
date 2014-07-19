@@ -1,6 +1,45 @@
 #include <string.h>
 #include <stdlib.h>
+#include <SDL2/SDL.h>
 #include "event.h"
+#include "luautils.h"
+
+lua_State *event_L;
+
+void event_init() {
+    event_L = luaL_newstate();
+    lua_init_state(event_L, "keys.lua");
+    // Actions
+    lua_pushnumber(event_L, UP);
+    lua_setglobal(event_L, "up");
+    lua_pushnumber(event_L, RIGHT);
+    lua_setglobal(event_L, "right");
+    lua_pushnumber(event_L, DOWN);
+    lua_setglobal(event_L, "down");
+    lua_pushnumber(event_L, LEFT);
+    lua_setglobal(event_L, "left");
+
+    //SDLKs
+    lua_pushnumber(event_L, SDLK_UP);
+    lua_setglobal(event_L, "k_up");
+    lua_pushnumber(event_L, SDLK_RIGHT);
+    lua_setglobal(event_L, "k_right");
+    lua_pushnumber(event_L, SDLK_DOWN);
+    lua_setglobal(event_L, "k_down");
+    lua_pushnumber(event_L, SDLK_LEFT);
+    lua_setglobal(event_L, "k_left");
+
+    lua_run(event_L);
+}
+
+int event_value_from_key(int sdl_key) {
+    int value;
+    lua_pushnumber(event_L, sdl_key);
+    lua_gettable(event_L, -2);
+    value = (int)lua_tonumber(event_L, -1);
+    lua_pop(event_L, 1);
+    return value;
+}
 
 void EventList_add_event(EventList *self, Event event) {
     self->length++;

@@ -11,7 +11,7 @@ DrawActionList start_scene_update(EventList events) {
         Event event = events.events[i];
         if (event.type == KEYDOWN) {
             switch (event.value) {
-                case KEY_UP:
+                case UP:
                     //scene_over is never set back to false. Fix that shit.
                     piggle_scene_next = play_scene_update;
                     piggle_scene_over = true;
@@ -20,13 +20,6 @@ DrawActionList start_scene_update(EventList events) {
         }
     }
 
-    // Fill the surface black
-    /*SDL_FillRect(screen,
-                 NULL,
-                 SDL_MapRGB(screen->format,
-                            0x00,
-                            0x00,
-                            0x00));*/
     actions.add_action(&actions, 10, 10, "start");
     return actions;
 }

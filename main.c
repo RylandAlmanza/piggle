@@ -105,6 +105,8 @@ int main(int argc, char* args[]) {
     SDL_Surface *sheet = NULL;
     lua_State *L = luaL_newstate();
     lua_init_state(L, "sprites.lua");
+    lua_run(L);
+    event_init();
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_ERROR: %s\n", SDL_GetError());
@@ -140,46 +142,16 @@ int main(int argc, char* args[]) {
                     // If the user presses that little "x"
                     if (sdl_event.type == SDL_QUIT) {
                         quit = true;
-                    }
-                    if (sdl_event.type == SDL_KEYDOWN) {
+                    } else if (sdl_event.type == SDL_KEYDOWN) {
                         event.type = KEYDOWN;
-                        switch (sdl_event.key.keysym.sym) {
-                            case SDLK_UP:
-                                event.value = KEY_UP;
-                                break;
-                            case SDLK_RIGHT:
-                                event.value = KEY_RIGHT;
-                                break;
-                            case SDLK_DOWN:
-                                event.value = KEY_DOWN;
-                                break;
-                            case SDLK_LEFT:
-                                event.value = KEY_LEFT;
-                                break;
-                            default:
-                                event.value = KEY_UP;
-                                break;
-                        }
-                    }
-                    if (sdl_event.type == SDL_KEYUP) {
+                        int key = sdl_event.key.keysym.sym;
+                        event.value = event_value_from_key(key);
+                    } else if (sdl_event.type == SDL_KEYUP) {
                         event.type = KEYUP;
-                        switch (sdl_event.key.keysym.sym) {
-                            case SDLK_UP:
-                                event.value = KEY_UP;
-                                break;
-                            case SDLK_RIGHT:
-                                event.value = KEY_RIGHT;
-                                break;
-                            case SDLK_DOWN:
-                                event.value = KEY_DOWN;
-                                break;
-                            case SDLK_LEFT:
-                                event.value = KEY_LEFT;
-                                break;
-                            default:
-                                event.value = KEY_UP;
-                                break;
-                        }
+                        int key = sdl_event.key.keysym.sym;
+                        event.value = event_value_from_key(key);
+                    } else {
+                        continue;
                     }
                     events.add_event(&events, event);
                 }

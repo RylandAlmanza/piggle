@@ -2,7 +2,7 @@
 #include "luautils.h"
 
 void lua_init_state(lua_State *L, char *filename) {
-    int status, result;
+    int status;
 
     luaL_openlibs(L);
 
@@ -11,8 +11,10 @@ void lua_init_state(lua_State *L, char *filename) {
         fprintf(stderr, "Couldn't load file: %s\n", lua_tostring(L, -1));
         exit(1);
     }
+}
 
-    result = lua_pcall(L, 0, LUA_MULTRET, 0);
+void lua_run(lua_State *L) {
+    int result = lua_pcall(L, 0, LUA_MULTRET, 0);
     if (result) {
         fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
         exit(1);

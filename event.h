@@ -11,10 +11,10 @@ enum EventTypeEnum {
 typedef enum EventValueEnum EventValue;
 
 enum EventValueEnum {
-    KEY_UP,
-    KEY_RIGHT,
-    KEY_DOWN,
-    KEY_LEFT
+    UP,
+    RIGHT,
+    DOWN,
+    LEFT
 };
 
 typedef struct EventStruct Event;
@@ -32,6 +32,10 @@ struct EventListStruct {
     void (*add_event)(EventList *self, Event event);
     void (*destroy)(EventList *self);
 };
+
+void event_init();
+
+int event_value_from_key(int sdl_key);
 
 EventList EventList_new();
 
