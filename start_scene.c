@@ -15,6 +15,7 @@ DrawActionList start_scene_update(EventList events) {
                     //scene_over is never set back to false. Fix that shit.
                     piggle_scene_next = play_scene_update;
                     piggle_scene_over = true;
+                    play_scene_start();
                     break;
             }
         }

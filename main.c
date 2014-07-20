@@ -12,8 +12,8 @@
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-void draw_sprite(char *sprite_name, int x, int y, SDL_Surface *screen_surface,
-                 SDL_Surface *sheet, lua_State *L) {
+void draw_sprite(char *sprite_name, int x, int y, SDL_Renderer *renderer,
+                 SDL_Texture *sheet, lua_State *L) {
     SDL_Rect source;
     SDL_Rect destination;
     destination.x = x;
@@ -51,37 +51,25 @@ void draw_sprite(char *sprite_name, int x, int y, SDL_Surface *screen_surface,
 
     lua_pop(L, 1);
 
-    SDL_BlitSurface(sheet, &source, screen_surface, &destination);
+    SDL_RenderCopy(renderer, sheet, &source, &destination);
 }
 
-SDL_Surface *load_surface(char *path, SDL_Surface *screen_surface) {
-    // optimizedSurface will point to the final optimized image
-    SDL_Surface *optimized_surface = NULL;
+SDL_Texture *loadTexture(char *path, SDL_Renderer *renderer) {
+    SDL_Texture *texture = NULL;
 
-    // Load image from the specified path
-    SDL_Surface *loaded_surface = IMG_Load(path);
-
-
-    if (loaded_surface == NULL) {
-        printf("Unable to load image %s! SDL_image Error: %s\n",
-               path,
+    SDL_Surface *loadedSurface = IMG_Load(path);
+    if (loadedSurface == NULL) {
+        printf("Couldn't load %s. Shit's fucked, because %s, dude.\n", path,
                IMG_GetError());
     } else {
-        // Convert surface to screen format
-        optimized_surface = SDL_ConvertSurface(loaded_surface,
-                                              screen_surface->format,
-                                              NULL);
-        if (optimized_surface == NULL) {
-            printf("Unable to optimize image %s! SDL Error: %s\n",
-                   path,
-                   SDL_GetError());
+        texture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+        if (texture == NULL) {
+            printf("Unable to create texture from %s. Shit's fucked, because %s"
+                   ", dude\n", path, SDL_GetError());
         }
-
-        // Get rid of old loaded surface
-        SDL_FreeSurface(loaded_surface);
+        SDL_FreeSurface(loadedSurface);
     }
-
-    return optimized_surface;
+    return texture;
 }
 
 int g;
@@ -98,11 +86,10 @@ int main(int argc, char* args[]) {
     // This will be the window we'll be rendering to
     SDL_Window *window = NULL;
 
-    // This will be the surface contained by the window
-    SDL_Surface *screen_surface = NULL;
+    SDL_Renderer *renderer = NULL;
 
-    // This will store the spritesheet
-    SDL_Surface *sheet = NULL;
+    SDL_Texture *sheet = NULL;
+
     lua_State *L = luaL_newstate();
     lua_init_state(L, "sprites.lua");
     lua_run(L);
@@ -111,6 +98,9 @@ int main(int argc, char* args[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_ERROR: %s\n", SDL_GetError());
     } else {
+        //if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 1)) {
+        //    printf("Warning: Linear texture filtering not enabled");
+        //}
         window = SDL_CreateWindow("Piggle",
                                   SDL_WINDOWPOS_UNDEFINED,
                                   SDL_WINDOWPOS_UNDEFINED,
@@ -121,10 +111,20 @@ int main(int argc, char* args[]) {
             printf("Window could not be created! SDL_Error: %s\n",
                    SDL_GetError());
         } else {
-            // Get window surface
-            screen_surface = SDL_GetWindowSurface(window);
-            // Get gotchi surface
-            sheet = load_surface("img/sprites.png", screen_surface);
+            renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+            if (renderer == NULL) {
+                printf("Renderer couldn't be created. Shit's fucked, becuase %s"
+                       ", dude.\n", SDL_GetError());
+            } else {
+                SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+                int imgFlags = IMG_INIT_PNG;
+                if (!(IMG_Init(imgFlags) & imgFlags)) {
+                    printf("SDL_image couldn't be initialized. Shit's fucked, "
+                           "because %s, dude.\n", IMG_GetError());
+                }
+            }
+            sheet = loadTexture("img/sprites.png", renderer);
             // When quit is set to true, we'll stop running
             bool quit = false;
             piggle_scene_over = false;
@@ -155,23 +155,16 @@ int main(int argc, char* args[]) {
                     }
                     events.add_event(&events, event);
                 }
-                // Fill the surface black
-                SDL_FillRect(screen_surface,
-                             NULL,
-                             SDL_MapRGB(screen_surface->format,
-                                        0x00,
-                                        0x00,
-                                        0x00));
+                SDL_RenderClear(renderer);
                 DrawActionList actions = DrawActionList_new();
                 actions = piggle_scene_update(events);
                 int i;
                 for (i = 0; i < actions.length; i++) {
                     DrawAction action = actions.actions[i];
                     draw_sprite(action.sprite, action.x, action.y,
-                                screen_surface, sheet, L);
+                                renderer, sheet, L);
                 }
-                // Update the surface
-                SDL_UpdateWindowSurface(window);
+                SDL_RenderPresent(renderer);
                 if (piggle_scene_over) {
                     piggle_scene_update = piggle_scene_next;
                 }
@@ -182,10 +175,15 @@ int main(int argc, char* args[]) {
         }
     }
 
-    // Destroy window
+    SDL_DestroyTexture(sheet);
+    sheet = NULL;
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    window = NULL;
+    renderer = NULL;
 
     // Quit SDL subsystems
+    IMG_Quit();
     SDL_Quit();
 
     lua_uninit_state(L);
