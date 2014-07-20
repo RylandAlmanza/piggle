@@ -22,7 +22,7 @@ void play_scene_start() {
         .right = world_pixel_width,
         .bottom = world_pixel_height
     };
-    play_camera = Camera_new(640, 480, bounds);
+    play_camera = Camera_new(490, 480, bounds);
     play_world.add_entity(&play_world, "player", 96, 96);
     play_camera.center_on(&play_camera, player);
 }
@@ -128,10 +128,12 @@ DrawActionList play_scene_update(EventList events) {
         }
         int x = tile->x - play_camera.x;
         int y = tile->y - play_camera.y;
-        actions.add_action(&actions, x, y, tile->sprite);
+        actions.add_action(&actions, DrawAction_sprite(x, y, tile->sprite));
     }
     int x = player->x - play_camera.x;
     int y = player->y - play_camera.y;
-    actions.add_action(&actions, x, y, player->sprite);
+    actions.add_action(&actions, DrawAction_sprite(x, y, player->sprite));
+    actions.add_action(&actions, DrawAction_rectangle(490, 0, 150, 480,
+                                                      0, 0, 0));
     return actions;
 }

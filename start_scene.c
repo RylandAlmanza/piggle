@@ -20,7 +20,6 @@ DrawActionList start_scene_update(EventList events) {
             }
         }
     }
-
-    actions.add_action(&actions, 10, 10, "start");
+    actions.add_action(&actions, DrawAction_sprite(10, 10, "start"));
     return actions;
 }

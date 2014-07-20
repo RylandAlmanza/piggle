@@ -2,11 +2,20 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include "luautils.h"
 #include "event.h"
 #include "draw_action.h"
 #include "start_scene.h"
 #include "scene.h"
+
+typedef struct TextStruct Text;
+
+struct TextStruct {
+    SDL_Texture *texture;
+    int width;
+    int height;
+};
 
 // Screen dimensions will be stored in SCREEN_WIDTH and SCREEN_HEIGHT
 const int SCREEN_WIDTH = 640;
@@ -72,12 +81,32 @@ SDL_Texture *loadTexture(char *path, SDL_Renderer *renderer) {
     return texture;
 }
 
+void *textureFromText(char *str, SDL_Color color, Text *text, TTF_Font *font,
+                      SDL_Renderer *renderer) {
+    SDL_Surface *surface = TTF_RenderText_Solid(font, str, color);
+    if (surface == NULL) {
+        printf("Unable to render text surface. Shit's fucked, because %s, dude"
+               ".", TTF_GetError());
+    } else {
+        text->texture = SDL_CreateTextureFromSurface(renderer, surface);
+        if (text->texture == NULL) {
+            printf("Unable to create texture from rendered text. Shit's fucked"
+                   " because %s, dude.", SDL_GetError());
+        } else {
+            text->width = surface->w;
+            text->height = surface->h;
+        }
+        SDL_FreeSurface(surface);
+    }
+}
+
 int g;
 
 int timer_start_ticks;
 void timer_start() {
     timer_start_ticks = SDL_GetTicks();
 }
+
 int timer_get_ticks() {
     return SDL_GetTicks() - timer_start_ticks;
 }
@@ -88,7 +117,10 @@ int main(int argc, char* args[]) {
 
     SDL_Renderer *renderer = NULL;
 
+    TTF_Font *font;
+
     SDL_Texture *sheet = NULL;
+    Text text;
 
     lua_State *L = luaL_newstate();
     lua_init_state(L, "sprites.lua");
@@ -123,7 +155,18 @@ int main(int argc, char* args[]) {
                     printf("SDL_image couldn't be initialized. Shit's fucked, "
                            "because %s, dude.\n", IMG_GetError());
                 }
+
+                if (TTF_Init() == -1) {
+                    printf("SDL_ttf couldn't initialize. Shit's fucked, becuase"
+                           " %s, dude.\n", TTF_GetError());
+                }
             }
+            font = TTF_OpenFont("DroidSansMono.ttf", 28);
+            if (font == NULL) {
+                printf("Failed to load lazy font. Shit's fucked, because %s, "
+                       "dude.", TTF_GetError());
+            }
+                
             sheet = loadTexture("img/sprites.png", renderer);
             // When quit is set to true, we'll stop running
             bool quit = false;
@@ -161,8 +204,30 @@ int main(int argc, char* args[]) {
                 int i;
                 for (i = 0; i < actions.length; i++) {
                     DrawAction action = actions.actions[i];
-                    draw_sprite(action.sprite, action.x, action.y,
-                                renderer, sheet, L);
+                    if (action.type == SPRITE) {
+                        draw_sprite(action.sprite, action.x, action.y,
+                                    renderer, sheet, L);
+                    } else if (action.type == TEXT) {
+                        SDL_Color color = {action.red,
+                                           action.green,
+                                           action.blue};
+                        textureFromText(action.text, color, &text, font,
+                                        renderer);
+                        SDL_Rect textRect;
+                        textRect.x = action.x;
+                        textRect.y = action.y;
+                        textRect.w = text.width;
+                        textRect.h = text.height;
+                        SDL_RenderCopy(renderer, text.texture, NULL, &textRect);
+                    } else if (action.type == RECTANGLE) {
+                        SDL_Rect rect = {.x = action.x,
+                                         .y = action.y,
+                                         .w = action.width,
+                                         .h = action.height};
+                        SDL_SetRenderDrawColor(renderer, action.red,
+                                               action.green, action.blue, 255);
+                        SDL_RenderFillRect(renderer, &rect);
+                    }
                 }
                 SDL_RenderPresent(renderer);
                 if (piggle_scene_over) {
@@ -176,6 +241,8 @@ int main(int argc, char* args[]) {
     }
 
     SDL_DestroyTexture(sheet);
+    SDL_DestroyTexture(text.texture);
+    text.texture = NULL;
     sheet = NULL;
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -183,6 +250,7 @@ int main(int argc, char* args[]) {
     renderer = NULL;
 
     // Quit SDL subsystems
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 
