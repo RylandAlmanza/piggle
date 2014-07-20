@@ -2,8 +2,10 @@
 #include <string.h>
 #include "play_scene.h"
 #include "world.h"
+#include "camera.h"
 
 World play_world;
+Camera play_camera;
 bool play_up;
 bool play_right;
 bool play_down;
@@ -11,7 +13,42 @@ bool play_left;
 
 void play_scene_start() {
     play_world = World_load();
-    play_world.add_entity(&play_world, "player", 10, 10);
+    Entity *player = play_world.get_entity(&play_world, 0);
+    int world_pixel_width = play_world.width * 32;
+    int world_pixel_height = play_world.height * 32;
+    Rectangle bounds = {
+        .left = 0,
+        .top = 0,
+        .right = world_pixel_width,
+        .bottom = world_pixel_height
+    };
+    play_camera = Camera_new(640, 480, bounds);
+    play_world.add_entity(&play_world, "player", 96, 96);
+    play_camera.center_on(&play_camera, player);
+}
+
+void handle_collision(Entity *entity, int x_velocity, int y_velocity) {
+    int i;
+    for (i = 0; i < play_world.width * play_world.height; i++) {
+        Entity *tile = &play_world.tiles[i];
+        if (!tile->solid) {
+            continue;
+        }
+        if (collides(entity->get_hitbox(entity), tile->get_hitbox(tile))) {
+            if (x_velocity > 0) {
+                entity->x = tile->x - entity->width;
+            }
+            if (x_velocity < 0) {
+                entity->x = tile->x + tile->width;
+            }
+            if (y_velocity > 0) {
+                entity->y = tile->y - entity->height;
+            }
+            if (y_velocity < 0) {
+                entity->y = tile->y + tile->height;
+            }
+        }
+    }
 }
 
 DrawActionList play_scene_update(EventList events) {
@@ -78,42 +115,23 @@ DrawActionList play_scene_update(EventList events) {
     }
 
     player->x += player->x_velocity;
-    for (i = 0; i < play_world.width * play_world.height; i++) {
-        Entity *tile = &play_world.tiles[i];
-        if (!tile->solid) {
-            continue;
-        }
-        if (collides(player->get_hitbox(player), tile->get_hitbox(tile))) {
-            if (player->x_velocity > 0) {
-                player->x = tile->x - player->width;
-            }
-            if (player->x_velocity < 0) {
-                player->x = tile->x + tile->width;
-            }
-        }
-    }
-
+    handle_collision(player, player->x_velocity, 0);
     player->y += player->y_velocity;
+    handle_collision(player, 0, player->y_velocity);
+
+    play_camera.center_on(&play_camera, player);
+
     for (i = 0; i < play_world.width * play_world.height; i++) {
         Entity *tile = &play_world.tiles[i];
-        if (!tile->solid) {
+        if (!play_camera.is_visible(&play_camera, tile)) {
             continue;
         }
-        if (collides(player->get_hitbox(player), tile->get_hitbox(tile))) {
-            if (player->y_velocity > 0) {
-                player->y = tile->y - player->height;
-            }
-            if (player->y_velocity < 0) {
-                player->y = tile->y + tile->height;
-            }
-        }
+        int x = tile->x - play_camera.x;
+        int y = tile->y - play_camera.y;
+        actions.add_action(&actions, x, y, tile->sprite);
     }
-
-    for (i = 0; i < play_world.width * play_world.height; i++) {
-        Entity *tile = &play_world.tiles[i];
-        actions.add_action(&actions, tile->x, tile->y, tile->sprite);
-    }
-
-    actions.add_action(&actions, player->x, player->y, player->sprite);
+    int x = player->x - play_camera.x;
+    int y = player->y - play_camera.y;
+    actions.add_action(&actions, x, y, player->sprite);
     return actions;
 }

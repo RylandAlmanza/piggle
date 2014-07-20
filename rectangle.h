@@ -13,5 +13,7 @@ struct RectangleStruct {
 };
 
 bool collides(Rectangle a, Rectangle b);
+int get_width(Rectangle rect);
+int get_height(Rectangle rect);
 
 #endif

@@ -48,4 +48,11 @@ sprites["water"] = {
     height = 32
 }
 
+sprites["tree"] = {
+    x = 96,
+    y = 32,
+    width = 32,
+    height = 32
+}
+
 return sprites

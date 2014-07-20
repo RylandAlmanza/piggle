@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "world.h"
 
 int TILE_WIDTH = 32;
@@ -39,27 +40,34 @@ void World_destroy(World *self) {
 
 World World_load() {
     World world;
+    world.entities = malloc(sizeof(Entity));
+    world.add_entity = &World_add_entity;
+    FILE *data;
+    data = fopen("map.txt", "r");
+    fscanf(data, "%d", &world.width);
+    fscanf(data, "%d", &world.height);
     world.entity_count = 0;
-    world.width = 5;
-    world.height = 5;
     world.tiles = malloc(sizeof(Entity) * (world.width * world.height));
     int x, y;
+    char line[world.width];
     for (y = 0; y < world.height; y++) {
+        fscanf(data, "%s", line);
         for (x = 0; x < world.width; x++) {
             Entity tile;
-            if (rand() % 2) {
+            if (line[x] == '.') {
                 tile = Entity_factory("grass");
-            } else {
+            } else if (line[x] == '~') {
                 tile = Entity_factory("water");
+            } else if (line[x] == 'T') {
+                tile = Entity_factory("tree");
             }
             tile.x = x * TILE_WIDTH;
             tile.y = y * TILE_HEIGHT;
             world.tiles[(y * world.width) + x] = tile;
         }
     }
-    world.entities = malloc(sizeof(Entity));
+    fclose(data);
 
-    world.add_entity = &World_add_entity;
     world.get_entity = &World_get_entity;
     world.remove_entity = &World_remove_entity;
     world.get_tile = &World_get_tile;

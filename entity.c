@@ -23,6 +23,7 @@ Entity Entity_factory(char *name) {
     entity.y_velocity = 0;
     entity.solid = false;
     strcpy(entity.name, name);
+    entity.get_hitbox = &Entity_get_hitbox;
     if (strcmp(name, "player") == 0) {
         strcpy(entity.sprite, "player_up");
         entity.solid = true;
@@ -32,8 +33,10 @@ Entity Entity_factory(char *name) {
     } else if (strcmp(name, "water") == 0) {
         strcpy(entity.sprite, "water");
         entity.solid = true;
+    } else if (strcmp(name, "tree") == 0) {
+        strcpy(entity.sprite, "tree");
+        entity.solid = true;
     }
 
-    entity.get_hitbox = &Entity_get_hitbox;
     return entity;
 }
