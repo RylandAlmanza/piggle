@@ -36,6 +36,8 @@ Entity Entity_factory(char *name) {
     } else if (strcmp(name, "tree") == 0) {
         strcpy(entity.sprite, "tree");
         entity.solid = true;
+    } else if (strcmp(name, "wheat") == 0) {
+        strcpy(entity.sprite, "wheat");
     }
 
     return entity;

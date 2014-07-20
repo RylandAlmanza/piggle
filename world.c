@@ -60,6 +60,8 @@ World World_load() {
                 tile = Entity_factory("water");
             } else if (line[x] == 'T') {
                 tile = Entity_factory("tree");
+            } else if (line[x] == '"') {
+                tile = Entity_factory("wheat");
             }
             tile.x = x * TILE_WIDTH;
             tile.y = y * TILE_HEIGHT;

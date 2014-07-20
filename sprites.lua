@@ -55,4 +55,11 @@ sprites["tree"] = {
     height = 32
 }
 
+sprites["wheat"] = {
+    x = 128,
+    y = 32,
+    width = 32,
+    height = 32
+}
+
 return sprites
