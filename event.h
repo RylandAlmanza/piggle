@@ -5,7 +5,8 @@ typedef enum EventTypeEnum EventType;
 
 enum EventTypeEnum {
     KEYDOWN,
-    KEYUP
+    KEYUP,
+    QUIT
 };
 
 typedef enum EventValueEnum EventValue;
@@ -14,7 +15,9 @@ enum EventValueEnum {
     UP,
     RIGHT,
     DOWN,
-    LEFT
+    LEFT,
+    ACTION,
+    DROP
 };
 
 typedef struct EventStruct Event;

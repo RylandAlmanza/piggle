@@ -62,4 +62,25 @@ sprites["wheat"] = {
     height = 32
 }
 
+sprites["tinderbox"] = {
+    x = 128,
+    y = 64,
+    width = 32,
+    height = 32
+}
+
+sprites["log"] = {
+    x = 0,
+    y = 96,
+    width = 32,
+    height = 32
+}
+
+sprites["axe"] = {
+    x = 32,
+    y = 96,
+    width = 32,
+    height = 32
+}
+
 return sprites

@@ -18,6 +18,10 @@ void event_init() {
     lua_setglobal(event_L, "down");
     lua_pushnumber(event_L, LEFT);
     lua_setglobal(event_L, "left");
+    lua_pushnumber(event_L, ACTION);
+    lua_setglobal(event_L, "action");
+    lua_pushnumber(event_L, DROP);
+    lua_setglobal(event_L, "drop");
 
     //SDLKs
     lua_pushnumber(event_L, SDLK_UP);
@@ -28,8 +32,16 @@ void event_init() {
     lua_setglobal(event_L, "k_down");
     lua_pushnumber(event_L, SDLK_LEFT);
     lua_setglobal(event_L, "k_left");
+    lua_pushnumber(event_L, SDLK_x);
+    lua_setglobal(event_L, "k_x");
+    lua_pushnumber(event_L, SDLK_z);
+    lua_setglobal(event_L, "k_z");
 
     lua_run(event_L);
+}
+
+void event_uninit() {
+    lua_uninit_state(event_L);
 }
 
 int event_value_from_key(int sdl_key) {

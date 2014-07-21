@@ -100,8 +100,6 @@ void *textureFromText(char *str, SDL_Color color, Text *text, TTF_Font *font,
     }
 }
 
-int g;
-
 int timer_start_ticks;
 void timer_start() {
     timer_start_ticks = SDL_GetTicks();
@@ -161,7 +159,7 @@ int main(int argc, char* args[]) {
                            " %s, dude.\n", TTF_GetError());
                 }
             }
-            font = TTF_OpenFont("DroidSansMono.ttf", 28);
+            font = TTF_OpenFont("DroidSansMono.ttf", 16);
             if (font == NULL) {
                 printf("Failed to load lazy font. Shit's fucked, because %s, "
                        "dude.", TTF_GetError());
@@ -185,6 +183,7 @@ int main(int argc, char* args[]) {
                     // If the user presses that little "x"
                     if (sdl_event.type == SDL_QUIT) {
                         quit = true;
+                        event.type = QUIT;
                     } else if (sdl_event.type == SDL_KEYDOWN) {
                         event.type = KEYDOWN;
                         int key = sdl_event.key.keysym.sym;
@@ -200,7 +199,8 @@ int main(int argc, char* args[]) {
                 }
                 SDL_RenderClear(renderer);
                 DrawActionList actions = DrawActionList_new();
-                actions = piggle_scene_update(events);
+                piggle_scene_update(&events, &actions);
+                events.destroy(&events);
                 int i;
                 for (i = 0; i < actions.length; i++) {
                     DrawAction action = actions.actions[i];
@@ -230,6 +230,7 @@ int main(int argc, char* args[]) {
                     }
                 }
                 SDL_RenderPresent(renderer);
+                actions.destroy(&actions);
                 if (piggle_scene_over) {
                     piggle_scene_update = piggle_scene_next;
                 }
@@ -244,6 +245,8 @@ int main(int argc, char* args[]) {
     SDL_DestroyTexture(text.texture);
     text.texture = NULL;
     sheet = NULL;
+    TTF_CloseFont(font);
+    font = NULL;
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     window = NULL;
@@ -255,6 +258,7 @@ int main(int argc, char* args[]) {
     SDL_Quit();
 
     lua_uninit_state(L);
+    event_uninit();
 
     return 0;
 }

@@ -5,7 +5,7 @@
 #include "event.h"
 
 void play_scene_start();
-DrawActionList play_scene_update(EventList events);
-void play_scene_end(EventList events);
+void play_scene_update(EventList *events, DrawActionList *actions);
+void play_scene_end();
 
 #endif

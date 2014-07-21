@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "world.h"
 
 int TILE_WIDTH = 32;
@@ -33,6 +34,7 @@ Entity World_remove_entity(World *self, int entity_id) {
     return entity;
 }
 
+int bagel;
 void World_destroy(World *self) {
     free(self->entities);
     free(self->tiles);
@@ -41,7 +43,6 @@ void World_destroy(World *self) {
 World World_load() {
     World world;
     world.entities = malloc(sizeof(Entity));
-    world.add_entity = &World_add_entity;
     FILE *data;
     data = fopen("map.txt", "r");
     fscanf(data, "%d", &world.width);
@@ -74,6 +75,7 @@ World World_load() {
     world.remove_entity = &World_remove_entity;
     world.get_tile = &World_get_tile;
     world.destroy = &World_destroy;
+    world.add_entity = &World_add_entity;
     
     return world;
 }

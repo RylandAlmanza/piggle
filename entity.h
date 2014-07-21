@@ -3,11 +3,14 @@
 
 #include <stdbool.h>
 #include "rectangle.h"
+#include "direction.h"
+#include "inventory_item.h"
 
 typedef struct EntityStruct Entity;
 
 struct EntityStruct {
     int id;
+    bool destroyed;
     int x;
     int y;
     int width;
@@ -15,10 +18,14 @@ struct EntityStruct {
     int speed;
     int x_velocity;
     int y_velocity;
+    InventoryItem inventory[25];
+    int item_count;
+    Direction facing;
     bool solid;
     char name[255];
     char sprite[255];
     Rectangle (*get_hitbox)(Entity *self);
+    bool (*acquire)(Entity *self, Entity item);
 };
 
 Entity Entity_factory(char *name);

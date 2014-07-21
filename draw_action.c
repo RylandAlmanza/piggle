@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "draw_action.h"
 
+char pleb[255];
+
 void DrawActionList_add_action(DrawActionList *self, DrawAction action) {
     self->length++;
     self->actions = realloc(self->actions,
@@ -14,6 +16,7 @@ DrawAction DrawAction_sprite(int x, int y, char sprite[255]) {
     action.type = SPRITE;
     action.x = x;
     action.y = y;
+    strcpy(pleb, sprite);
     strcpy(action.sprite, sprite);
 
     return action;
