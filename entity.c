@@ -13,7 +13,7 @@ Rectangle Entity_get_hitbox(Entity *self) {
 }
 
 bool Entity_acquire(Entity *self, Entity item) {
-    if (self->item_count > 25) {
+    if (self->item_count >= 25) {
         return false;
     }
     self->item_count++;
