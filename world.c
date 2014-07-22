@@ -10,7 +10,7 @@ int TILE_HEIGHT = 32;
 Entity *World_add_entity(World *self, char *name, int x, int y) {
     self->entity_count++;
     self->entities = realloc(self->entities,
-                             sizeof(Entity) * self->entity_count);
+                             sizeof(Entity) * self->entity_count + 1);
     Entity entity = Entity_factory(name);
     entity.x = x;
     entity.y = y;

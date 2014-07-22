@@ -5,7 +5,7 @@ typedef struct InventoryItemStruct InventoryItem;
 
 struct InventoryItemStruct {
     char name[255];
-    char sprite[255];
+    int sprite;
 };
 
 #endif

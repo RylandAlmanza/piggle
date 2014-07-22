@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdbool.h>
 #include "scene.h"
 #include "start_scene.h"
@@ -19,5 +18,5 @@ void start_scene_update(EventList *events, DrawActionList *actions) {
             }
         }
     }
-    actions->add_action(actions, DrawAction_sprite(10, 10, "start"));
+    actions->add_action(actions, DrawAction_sprite(10, 10, START));
 }

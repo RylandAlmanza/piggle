@@ -31,7 +31,7 @@ void play_scene_start() {
         .right = world_pixel_width,
         .bottom = world_pixel_height
     };
-    play_camera = Camera_new(490, 480, bounds);
+    play_camera = Camera_new(490, 450, bounds);
     play_world.add_entity(&play_world, "player", 96, 96);
     play_camera.center_on(&play_camera, player);
     play_log("Welcome to Piggle!");
@@ -210,22 +210,22 @@ void play_scene_update(EventList *events, DrawActionList *actions) {
     if (play_right) {
         player->x_velocity = player->speed;
         player->facing = EAST;
-        strcpy(player->sprite, "player_right");
+        player->sprite = PLAYER_RIGHT;
     }
     if (play_left) {
         player->x_velocity = -player->speed;
         player->facing = WEST;
-        strcpy(player->sprite, "player_left");
+        player->sprite = PLAYER_LEFT;
     }
     if (play_up) {
         player->y_velocity = -player->speed;
         player->facing = NORTH;
-        strcpy(player->sprite, "player_up");
+        player->sprite = PLAYER_UP;
     }
     if (play_down) {
         player->y_velocity = player->speed;
         player->facing = SOUTH;
-        strcpy(player->sprite, "player_down");
+        player->sprite = PLAYER_DOWN;
     }
     if (play_action) {
         Entity *tile = get_facing_tile(player);

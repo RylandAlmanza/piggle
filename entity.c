@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "entity.h"
+#include "sprites.h"
 
 Rectangle Entity_get_hitbox(Entity *self) {
     Rectangle hitbox = {
@@ -18,7 +19,7 @@ bool Entity_acquire(Entity *self, Entity item) {
     }
     self->item_count++;
     strcpy(self->inventory[self->item_count - 1].name, item.name);
-    strcpy(self->inventory[self->item_count - 1].sprite, item.sprite);
+    self->inventory[self->item_count - 1].sprite = item.sprite;
     return true;
 }
 
@@ -39,17 +40,28 @@ Entity Entity_factory(char *name) {
     strcpy(entity.name, name);
     entity.get_hitbox = &Entity_get_hitbox;
     entity.acquire = &Entity_acquire;
-    strcpy(entity.sprite, name);
     if (strcmp(name, "player") == 0) {
-        strcpy(entity.sprite, "player_up");
+        entity.sprite = PLAYER_UP;
         entity.solid = true;
         entity.speed = 3;
         entity.acquire(&entity, Entity_factory("tinderbox"));
         entity.acquire(&entity, Entity_factory("axe"));
     } else if (strcmp(name, "water") == 0) {
+        entity.sprite = WATER;
         entity.solid = true;
     } else if (strcmp(name, "tree") == 0) {
+        entity.sprite = TREE;
         entity.solid = true;
+    } else if (strcmp(name, "grass") == 0) {
+        entity.sprite = GRASS;
+    } else if (strcmp(name, "wheat") == 0) {
+        entity.sprite = WHEAT;
+    } else if (strcmp(name, "axe") == 0) {
+        entity.sprite = AXE;
+    } else if (strcmp(name, "tinderbox") == 0) {
+        entity.sprite = TINDERBOX;
+    } else if (strcmp(name, "log") == 0) {
+        entity.sprite = LOG;
     }
 
     return entity;

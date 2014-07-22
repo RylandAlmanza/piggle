@@ -23,7 +23,7 @@ struct EntityStruct {
     Direction facing;
     bool solid;
     char name[255];
-    char sprite[255];
+    int sprite;
     Rectangle (*get_hitbox)(Entity *self);
     bool (*acquire)(Entity *self, Entity item);
 };

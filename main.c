@@ -8,6 +8,7 @@
 #include "draw_action.h"
 #include "start_scene.h"
 #include "scene.h"
+#include "sprites.h"
 
 typedef struct TextStruct Text;
 
@@ -20,48 +21,6 @@ struct TextStruct {
 // Screen dimensions will be stored in SCREEN_WIDTH and SCREEN_HEIGHT
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
-
-void draw_sprite(char *sprite_name, int x, int y, SDL_Renderer *renderer,
-                 SDL_Texture *sheet, lua_State *L) {
-    SDL_Rect source;
-    SDL_Rect destination;
-    destination.x = x;
-    destination.y = y;
-    
-    // Select the table named <sprite_name>
-    lua_pushstring(L, sprite_name);
-    lua_gettable(L, -2);
-
-    // Get x
-    lua_pushstring(L, "x");
-    lua_gettable(L, -2);
-    source.x = (int)lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    // Get y
-    lua_pushstring(L, "y");
-    lua_gettable(L, -2);
-    source.y = (int)lua_tonumber(L, -1);
-    lua_pop(L, 1);
-
-    // Get width
-    lua_pushstring(L, "width");
-    lua_gettable(L, -2);
-    source.w = (int)lua_tonumber(L, -1);
-    destination.w = source.w;
-    lua_pop(L, 1);
-
-    // Get height
-    lua_pushstring(L, "height");
-    lua_gettable(L, -2);
-    source.h = (int)lua_tonumber(L, -1);
-    destination.h = source.h;
-    lua_pop(L, 1);
-
-    lua_pop(L, 1);
-
-    SDL_RenderCopy(renderer, sheet, &source, &destination);
-}
 
 SDL_Texture *loadTexture(char *path, SDL_Renderer *renderer) {
     SDL_Texture *texture = NULL;
@@ -120,9 +79,7 @@ int main(int argc, char* args[]) {
     SDL_Texture *sheet = NULL;
     Text text;
 
-    lua_State *L = luaL_newstate();
-    lua_init_state(L, "sprites.lua");
-    lua_run(L);
+    init_sprites();
     event_init();
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -205,13 +162,18 @@ int main(int argc, char* args[]) {
                 for (i = 0; i < actions.length; i++) {
                     DrawAction action = actions.actions[i];
                     if (action.type == SPRITE) {
-                        draw_sprite(action.sprite, action.x, action.y,
-                                    renderer, sheet, L);
+                        SDL_Rect *sprite = &sprites[action.sprite];
+                        SDL_Rect dest;
+                        dest.x = action.x;
+                        dest.y = action.y;
+                        dest.w = sprite->w;
+                        dest.h = sprite->h;
+                        SDL_RenderCopy(renderer, sheet, sprite, &dest);
                     } else if (action.type == TEXT) {
-                        SDL_Color color = {action.red,
-                                           action.green,
-                                           action.blue};
-                        textureFromText(action.text, color, &text, font,
+                        SDL_Color color = {action.text.red,
+                                           action.text.green,
+                                           action.text.blue};
+                        textureFromText(action.text.text, color, &text, font,
                                         renderer);
                         SDL_Rect textRect;
                         textRect.x = action.x;
@@ -219,13 +181,15 @@ int main(int argc, char* args[]) {
                         textRect.w = text.width;
                         textRect.h = text.height;
                         SDL_RenderCopy(renderer, text.texture, NULL, &textRect);
+                        SDL_DestroyTexture(text.texture);
                     } else if (action.type == RECTANGLE) {
                         SDL_Rect rect = {.x = action.x,
                                          .y = action.y,
-                                         .w = action.width,
-                                         .h = action.height};
-                        SDL_SetRenderDrawColor(renderer, action.red,
-                                               action.green, action.blue, 255);
+                                         .w = action.rect.width,
+                                         .h = action.rect.height};
+                        SDL_SetRenderDrawColor(renderer, action.rect.red,
+                                               action.rect.green,
+                                               action.rect.blue, 255);
                         SDL_RenderFillRect(renderer, &rect);
                     }
                 }
@@ -257,7 +221,6 @@ int main(int argc, char* args[]) {
     IMG_Quit();
     SDL_Quit();
 
-    lua_uninit_state(L);
     event_uninit();
 
     return 0;
