@@ -23,6 +23,16 @@ bool Entity_acquire(Entity *self, Entity item) {
     return true;
 }
 
+Entity Entity_lose(Entity *self, int index) {
+    Entity item = Entity_factory(self->inventory[index].name);
+    int i;
+    self->item_count--;
+    for (i = index; i < self->item_count; i++) {
+        self->inventory[i] = self->inventory[i + 1];
+    }
+    return item;
+}
+
 Entity Entity_factory(char *name) {
     Entity entity;
     entity.id = 0;
@@ -40,6 +50,7 @@ Entity Entity_factory(char *name) {
     strcpy(entity.name, name);
     entity.get_hitbox = &Entity_get_hitbox;
     entity.acquire = &Entity_acquire;
+    entity.lose = &Entity_lose;
     if (strcmp(name, "player") == 0) {
         entity.sprite = PLAYER_UP;
         entity.solid = true;

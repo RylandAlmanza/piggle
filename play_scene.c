@@ -6,6 +6,7 @@
 #include "world.h"
 #include "camera.h"
 #include "point.h"
+#include "scene.h"
 
 World play_world;
 Camera play_camera;
@@ -15,12 +16,20 @@ bool play_down;
 bool play_left;
 bool play_action;
 char play_log_text[255];
+int play_choice;
+bool play_choosing;
 
 void play_log(char text[255]) {
     strcpy(play_log_text, text);
 }
 
+void play_choose_start() {
+    play_choice = 0;
+    play_choosing = true;
+}
+
 void play_scene_start() {
+    play_choosing = false;
     play_world = World_load();
     Entity *player = play_world.get_entity(&play_world, 0);
     int world_pixel_width = play_world.width * 32;
@@ -37,23 +46,60 @@ void play_scene_start() {
     play_log("Welcome to Piggle!");
 }
 
-void draw_log(DrawActionList *list) {
-    list->add_action(list, DrawAction_rectangle(0, 450, 490, 30, 222, 238,
+void draw_log(DrawActionList *actions) {
+    actions->add_action(actions, DrawAction_rectangle(0, 450, 490, 30, 222, 238,
                                                 214));
-    list->add_action(list, DrawAction_text(4, 455, play_log_text, 20, 12, 28));
+    actions->add_action(actions, DrawAction_text(4, 455, play_log_text, 20, 12, 28));
 }
 
-void draw_inventory(DrawActionList *list) {
+void draw_inventory(DrawActionList *actions) {
     Entity *player = play_world.get_entity(&play_world, 0);
     InventoryItem *item;
+    actions->add_action(actions, DrawAction_rectangle(490, 0, 150, 480,
+                                                      222, 238, 214));
+    if (play_choosing) {
+        int y = (play_choice * 34);
+        actions->add_action(actions, DrawAction_rectangle(490, y, 150, 34, 89,
+                                                          125, 206));
+    }
     int i;
     for (i = 0; i < player->item_count; i++) {
         item = &player->inventory[i];
         int y = 2 + (i * 34);
-        list->add_action(list, DrawAction_sprite(492, y, item->sprite));
-        list->add_action(list, DrawAction_text(526, y, item->name, 20, 12,
+        actions->add_action(actions, DrawAction_sprite(492, y, item->sprite));
+        actions->add_action(actions, DrawAction_text(526, y, item->name, 20, 12,
                                                28));
     }
+}
+
+void draw_world_view(DrawActionList *actions) {
+    Entity *player = play_world.get_entity(&play_world, 0);
+    play_camera.center_on(&play_camera, player);
+
+    int i;
+    for (i = 0; i < play_world.width * play_world.height; i++) {
+        Entity *tile = &play_world.tiles[i];
+        if (!play_camera.is_visible(&play_camera, tile)) {
+            continue;
+        }
+        int x = tile->x - play_camera.x;
+        int y = tile->y - play_camera.y;
+        actions->add_action(actions, DrawAction_sprite(x, y, tile->sprite));
+    }
+
+    for (i = 1; i < play_world.entity_count; i++) {
+        Entity *entity = play_world.get_entity(&play_world, i);
+        
+        int x = entity->x - play_camera.x;
+        int y = entity->y - play_camera.y;
+
+        actions->add_action(actions, DrawAction_sprite(x, y, entity->sprite));
+    }
+
+    int x = player->x - play_camera.x;
+    int y = player->y - play_camera.y;
+
+    actions->add_action(actions, DrawAction_sprite(x, y, player->sprite));
 }
 
 void handle_collision(Entity *entity, int x_velocity, int y_velocity) {
@@ -158,7 +204,49 @@ Entity *get_facing_tile(Entity *entity) {
     }
 }
 
-char pspr[255];
+void play_scene_choose(EventList *events, DrawActionList *actions) {
+    Entity *player = play_world.get_entity(&play_world, 0);
+    int i;
+    for (i = 0; i < events->length; i++) {
+        Event event = events->events[i];
+        if (event.type == QUIT) {
+            play_scene_end();
+            return;
+        }
+        if (event.type == KEYDOWN) {
+            switch (event.value) {
+                case UP:
+                    play_choice--;
+                    if (play_choice < 0) {
+                        play_choice = player->item_count - 1;
+                    }
+                    break;
+                case DOWN:
+                    play_choice++;
+                    if (play_choice >= player->item_count) {
+                        play_choice = 0;
+                    }
+                    break;
+                case ACTION:
+                    piggle_scene_over = true;
+                    play_choosing = false;
+                    int x = floor(player->x / 32) * 32;
+                    int y = floor(player->y / 32) * 32;
+                    Entity item = player->lose(player, play_choice);
+                    play_world.add_entity(&play_world, item.name, x, y);
+                    char log_message[255];
+                    sprintf(log_message, "You drop the %s.", item.name);
+                    play_log(log_message);
+                    piggle_scene_next = &play_scene_update;
+                    break;
+            }
+        }
+    }
+
+    draw_world_view(actions);
+    draw_inventory(actions);
+    draw_log(actions);
+}
 
 void play_scene_update(EventList *events, DrawActionList *actions) {
     play_action = false;
@@ -185,6 +273,11 @@ void play_scene_update(EventList *events, DrawActionList *actions) {
                     break;
                 case ACTION:
                     play_action = true;
+                    break;
+                case DROP:
+                    piggle_scene_over = true;
+                    play_choose_start();
+                    piggle_scene_next = &play_scene_choose;
                     break;
             }
         }
@@ -263,23 +356,7 @@ void play_scene_update(EventList *events, DrawActionList *actions) {
     player->y += player->y_velocity;
     handle_collision(player, 0, player->y_velocity);
 
-    play_camera.center_on(&play_camera, player);
-
-    for (i = 0; i < play_world.width * play_world.height; i++) {
-        Entity *tile = &play_world.tiles[i];
-        if (!play_camera.is_visible(&play_camera, tile)) {
-            continue;
-        }
-        int x = tile->x - play_camera.x;
-        int y = tile->y - play_camera.y;
-        actions->add_action(actions, DrawAction_sprite(x, y, tile->sprite));
-    }
-    int x = player->x - play_camera.x;
-    int y = player->y - play_camera.y;
-
-    actions->add_action(actions, DrawAction_sprite(x, y, player->sprite));
-    actions->add_action(actions, DrawAction_rectangle(490, 0, 150, 480,
-                                                      222, 238, 214));
+    draw_world_view(actions);
     draw_inventory(actions);
     draw_log(actions);
 }

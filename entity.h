@@ -26,6 +26,7 @@ struct EntityStruct {
     int sprite;
     Rectangle (*get_hitbox)(Entity *self);
     bool (*acquire)(Entity *self, Entity item);
+    Entity (*lose)(Entity *self, int index);
 };
 
 Entity Entity_factory(char *name);

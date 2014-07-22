@@ -197,6 +197,7 @@ int main(int argc, char* args[]) {
                 actions.destroy(&actions);
                 if (piggle_scene_over) {
                     piggle_scene_update = piggle_scene_next;
+                    piggle_scene_over = false;
                 }
                 if (timer_get_ticks() < 1000 / 60) {
                     SDL_Delay((1000 / 60) - timer_get_ticks());
