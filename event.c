@@ -22,6 +22,8 @@ void event_init() {
     lua_setglobal(event_L, "action");
     lua_pushnumber(event_L, DROP);
     lua_setglobal(event_L, "drop");
+    lua_pushnumber(event_L, GRAB);
+    lua_setglobal(event_L, "grab");
 
     //SDLKs
     lua_pushnumber(event_L, SDLK_UP);
@@ -36,6 +38,8 @@ void event_init() {
     lua_setglobal(event_L, "k_x");
     lua_pushnumber(event_L, SDLK_z);
     lua_setglobal(event_L, "k_z");
+    lua_pushnumber(event_L, SDLK_c);
+    lua_setglobal(event_L, "k_c");
 
     lua_run(event_L);
 }

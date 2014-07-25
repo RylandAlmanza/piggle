@@ -17,7 +17,8 @@ enum EventValueEnum {
     DOWN,
     LEFT,
     ACTION,
-    DROP
+    DROP,
+    GRAB
 };
 
 typedef struct EventStruct Event;

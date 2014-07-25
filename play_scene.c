@@ -19,6 +19,12 @@ char play_log_text[255];
 int play_choice;
 bool play_choosing;
 
+enum {
+    NO_CHOICE,
+    DROP_CHOICE,
+    GRAB_CHOICE
+} play_choose_type;
+
 void play_log(char text[255]) {
     strcpy(play_log_text, text);
 }
@@ -230,13 +236,20 @@ void play_scene_choose(EventList *events, DrawActionList *actions) {
                 case ACTION:
                     piggle_scene_over = true;
                     play_choosing = false;
-                    int x = floor(player->x / 32) * 32;
-                    int y = floor(player->y / 32) * 32;
-                    Entity item = player->lose(player, play_choice);
-                    play_world.add_entity(&play_world, item.name, x, y);
-                    char log_message[255];
-                    sprintf(log_message, "You drop the %s.", item.name);
-                    play_log(log_message);
+                    if (play_choose_type == DROP_CHOICE) {
+                        int center_x = player->x + (player->width / 2);
+                        int center_y = player->y + (player->height / 2);
+                        int x = floor(center_x / 32) * 32;
+                        int y = floor(center_y / 32) * 32;
+                        Entity item = player->lose(player, play_choice);
+                        play_world.add_entity(&play_world, item.name, x, y);
+                        char log_message[255];
+                        sprintf(log_message, "You drop the %s.", item.name);
+                        play_log(log_message);
+                    }
+                    piggle_scene_over = true;
+                    play_choose_start();
+                    play_choosing = false;
                     piggle_scene_next = &play_scene_update;
                     break;
             }
@@ -250,6 +263,7 @@ void play_scene_choose(EventList *events, DrawActionList *actions) {
 
 void play_scene_update(EventList *events, DrawActionList *actions) {
     play_action = false;
+    Entity *player = play_world.get_entity(&play_world, 0);
     int i;
     for (i = 0; i < events->length; i++) {
         Event event = events->events[i];
@@ -277,7 +291,23 @@ void play_scene_update(EventList *events, DrawActionList *actions) {
                 case DROP:
                     piggle_scene_over = true;
                     play_choose_start();
+                    play_choose_type = DROP_CHOICE;
                     piggle_scene_next = &play_scene_choose;
+                    break;
+                case GRAB:
+                    for (i = 1; i < play_world.entity_count; i++) {
+                        Entity e2 = play_world.entities[i];
+                        if (collides(player->get_hitbox(player),
+                                     e2.get_hitbox(&e2))) {
+                            play_world.remove_entity(&play_world, i);
+                            player->acquire(player, e2);
+                            char log_message[255];
+                            sprintf(log_message, "You pick up the %s.",
+                                    e2.name);
+                            play_log(log_message);
+                            break;
+                        }
+                    }
                     break;
             }
         }
@@ -298,7 +328,6 @@ void play_scene_update(EventList *events, DrawActionList *actions) {
             }
         }
     }
-    Entity *player = play_world.get_entity(&play_world, 0);
 
     if (play_right) {
         player->x_velocity = player->speed;
