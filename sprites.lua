@@ -83,4 +83,11 @@ sprites["axe"] = {
     height = 32
 }
 
+sprites["fishing rod"] = {
+    x = 64,
+    y = 96,
+    width = 32,
+    height = 32
+}
+
 return sprites

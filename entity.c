@@ -57,6 +57,7 @@ Entity Entity_factory(char *name) {
         entity.speed = 3;
         entity.acquire(&entity, Entity_factory("tinderbox"));
         entity.acquire(&entity, Entity_factory("axe"));
+        entity.acquire(&entity, Entity_factory("fishing rod"));
     } else if (strcmp(name, "water") == 0) {
         entity.sprite = WATER;
         entity.solid = true;
@@ -73,6 +74,8 @@ Entity Entity_factory(char *name) {
         entity.sprite = TINDERBOX;
     } else if (strcmp(name, "log") == 0) {
         entity.sprite = LOG;
+    } else if (strcmp(name, "fishing rod") == 0) {
+        entity.sprite = FISHING_ROD;
     }
 
     return entity;

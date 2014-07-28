@@ -15,10 +15,11 @@ enum Sprites {
     TINDERBOX,
     WHEAT,
     LOG,
-    START
+    START,
+    FISHING_ROD
 };
 
-SDL_Rect sprites[12];
+SDL_Rect sprites[13];
 
 void init_sprites();
 

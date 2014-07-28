@@ -50,6 +50,7 @@ void init_sprites() {
     set_sprite(&sprites[WHEAT], "wheat", L);
     set_sprite(&sprites[START], "start", L);
     set_sprite(&sprites[LOG], "log", L);
+    set_sprite(&sprites[FISHING_ROD], "fishing rod", L);
 
     lua_uninit_state(L);
 }
